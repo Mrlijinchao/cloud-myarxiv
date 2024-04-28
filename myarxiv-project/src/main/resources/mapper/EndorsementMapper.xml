@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lijinchao.mapper.EndorsementMapper">
+
+    <resultMap id="BaseResultMap" type="com.lijinchao.entity.Endorsement">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="endorserId" column="endorser_id" jdbcType="BIGINT"/>
+            <result property="userEmail" column="user_email" jdbcType="VARCHAR"/>
+            <result property="userOrganization" column="user_organization" jdbcType="VARCHAR"/>
+            <result property="subjectCategoryId" column="subject_category_id" jdbcType="VARCHAR"/>
+            <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+            <result property="createStaff" column="create_staff" jdbcType="BIGINT"/>
+            <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+            <result property="updateStaff" column="update_staff" jdbcType="BIGINT"/>
+            <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,endorser_id,
+        user_email,user_orgnization,subject_category_id,
+        create_date,create_staff,update_date,
+        update_staff,is_deleted
+    </sql>
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lijinchao.mapper.FileMapper">
+
+    <resultMap id="BaseResultMap" type="com.lijinchao.entity.File">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="size" column="size" jdbcType="BIGINT"/>
+            <result property="md5" column="md5" jdbcType="VARCHAR"/>
+            <result property="hash" column="hash" jdbcType="VARCHAR"/>
+            <result property="suffix" column="suffix" jdbcType="VARCHAR"/>
+            <result property="cid" column="cid" jdbcType="VARCHAR"/>
+            <result property="url" column="url" jdbcType="VARCHAR"/>
+            <result property="contentType" column="content_type" jdbcType="VARCHAR"/>
+            <result property="transactionId" column="transaction_id" jdbcType="INTEGER"/>
+            <result property="traderAddress" column="trader_address" jdbcType="VARCHAR"/>
+            <result property="docState" column="doc_state" jdbcType="VARCHAR"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="userCode" column="user_code" jdbcType="VARCHAR"/>
+            <result property="errorMsg" column="error_msg" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="abstracts" column="abstracts" jdbcType="VARCHAR"/>
+            <result property="previewFileId" column="preview_file_id" jdbcType="BIGINT"/>
+            <result property="textFileId" column="text_file_id" jdbcType="BIGINT"/>
+            <result property="thumbId" column="thumb_id" jdbcType="BIGINT"/>
+            <result property="statusCd" column="status_cd" jdbcType="VARCHAR"/>
+            <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+            <result property="createStaff" column="create_staff" jdbcType="BIGINT"/>
+            <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+            <result property="updateStaff" column="update_staff" jdbcType="BIGINT"/>
+            <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,size,
+        md5,hash,suffix,
+        cid,url,content_type,
+        transaction_id,trader_address,doc_state,
+        user_id,user_code,error_msg,
+        description,abstracts,preview_file_id,
+        text_file_id,thumb_id,status_cd,
+        create_date,create_staff,update_date,
+        update_staff,is_deleted
+    </sql>
+</mapper>

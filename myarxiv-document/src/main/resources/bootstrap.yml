@@ -1,0 +1,20 @@
+server:
+  port: 8099
+spring:
+  application:
+    name: myarxiv-document
+  cloud:
+    nacos:
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:nacos}
+      discovery:
+        server-addr: ${NACOS_ADDR:192.168.153.145:8850}
+        namespace: ${NAMESPACE_ID:0a523cd0-799b-4032-95d7-ac5baaca0185}
+      config:
+        enabled: true
+        bootstrap: true
+        server-addr: ${NACOS_ADDR:192.168.153.145:8850}
+        namespace: ${NAMESPACE_ID:0a523cd0-799b-4032-95d7-ac5baaca0185}
+        group: ${NACOS_GROUP:DOCUMENT_GROUP}
+        file-extension: ${NACOS_EX:yaml}
+# java -Dfile.encoding=utf-8 -jar xxx

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lijinchao.mapper.PaperMapper">
+
+    <resultMap id="BaseResultMap" type="com.lijinchao.entity.Paper">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="subjectId" column="subject_id" jdbcType="BIGINT"/>
+            <result property="licenseId" column="license_id" jdbcType="BIGINT"/>
+            <result property="submissionId" column="submission_id" jdbcType="BIGINT"/>
+            <result property="categoryId" column="category_id" jdbcType="BIGINT"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+            <result property="abstracts" column="abstracts" jdbcType="VARCHAR"/>
+            <result property="identifier" column="identifier" jdbcType="VARCHAR"/>
+            <result property="authors" column="authors" jdbcType="VARCHAR"/>
+            <result property="comments" column="comments" jdbcType="VARCHAR"/>
+            <result property="acmClass" column="acm_class" jdbcType="VARCHAR"/>
+            <result property="mscClass" column="msc_class" jdbcType="VARCHAR"/>
+            <result property="reportNumber" column="report_number" jdbcType="VARCHAR"/>
+            <result property="journalReference" column="journal_reference" jdbcType="VARCHAR"/>
+            <result property="doi" column="doi" jdbcType="VARCHAR"/>
+            <result property="hash" column="hash" jdbcType="VARCHAR"/>
+            <result property="version" column="version" jdbcType="INTEGER"/>
+            <result property="usingVersion" column="using_version" jdbcType="INTEGER"/>
+            <result property="samePaperIdentifier" column="same_paper_identifier" jdbcType="VARCHAR"/>
+            <result property="auditStatus" column="audit_status" jdbcType="VARCHAR"/>
+            <result property="remark" column="remark" jdbcType="VARCHAR"/>
+            <result property="statusCd" column="status_cd" jdbcType="VARCHAR"/>
+            <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+            <result property="createStaff" column="create_staff" jdbcType="BIGINT"/>
+            <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+            <result property="updateStaff" column="update_staff" jdbcType="BIGINT"/>
+            <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,subject_id,license_id,
+        submission_id,category_id,title,
+        abstract,identifier,authors,
+        comments,acm_class,msc_class,
+        report_number,journal_reference,doi,
+        hash,version,using_version,
+        same_paper_identifier,audit_status,remark,
+        status_cd,create_date,create_staff,
+        update_date,update_staff,is_deleted
+    </sql>
+</mapper>
