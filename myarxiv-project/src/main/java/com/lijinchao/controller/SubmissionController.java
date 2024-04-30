@@ -1,6 +1,7 @@
 package com.lijinchao.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lijinchao.constant.MessageConstant;
 import com.lijinchao.entity.File;
 import com.lijinchao.entity.Paper;
@@ -13,8 +14,10 @@ import com.lijinchao.utils.BaseApiResult;
 import com.lijinchao.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -174,6 +177,58 @@ public class SubmissionController {
             List<Submission> list = submissionService.list(new LambdaQueryWrapper<Submission>()
                     .eq(Submission::getId, submissionId).eq(Submission::getCurrentStep, 6));
             return null;
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+        }
+    }
+
+    /**
+     * 后台查询用
+     * @param pageSize
+     * @param pageNum
+     * @param subjectId
+     * @return
+     */
+    @GetMapping("/querySubmittedByPage")
+    public BaseApiResult querySubmittedByPage(@RequestParam(defaultValue = "10") Integer pageSize,
+                                              @RequestParam(defaultValue = "1") Integer pageNum,
+                                              @RequestParam(required = false) Long subjectId){
+        try {
+            Page<Submission> submittedByPage = submissionService.getSubmittedByPage(pageSize, pageNum, subjectId);
+            return BaseApiResult.success(submittedByPage);
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+        }
+    }
+
+    /**
+     * 根据id删除
+     * @param submission
+     * @return
+     */
+    @DeleteMapping("/removeSubmission")
+    public BaseApiResult removeSubmission(@RequestBody Submission submission){
+        try {
+            submissionService.deleteSubmission(submission);
+            return BaseApiResult.success();
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+        }
+    }
+
+    /**
+     * 撤销已经提交的论文
+     * @param submission
+     * @return
+     */
+    @PutMapping("/unSubmit")
+    public BaseApiResult unSubmit(@RequestBody Submission submission){
+        try {
+            submissionService.unSubmit(submission);
+            return BaseApiResult.success();
         }catch (Exception e){
             e.printStackTrace();
             return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);

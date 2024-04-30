@@ -42,6 +42,14 @@ public interface PaperService extends IService<Paper> {
      */
     Boolean paperAudit(PaperAudit paperAudit, User user);
 
+//    /**
+//     * 论文
+//     * @param paperAudit
+//     * @param user
+//     * @return
+//     */
+//    Boolean paperOnHold(PaperAudit paperAudit,User user);
+
     /**
      * 根据分类分页查询论文
      * @param categoryId
@@ -88,5 +96,28 @@ public interface PaperService extends IService<Paper> {
                                                    String journalReference, String doi,
                                                    Long subjectId,Integer pageSize, Integer pageNum,
                                                    String startTime, String endTime) throws ParseException;
+
+    /**
+     * 包装paper
+     * @param paperDtoList
+     * @return
+     */
+    public List<PaperDto> wrapperPaper(List<PaperDto> paperDtoList);
+
+    /**
+     * 查询已经审核过的论文
+     * @param pageSize
+     * @param pageNum
+     * @param verifierId
+     * @return
+     */
+    Page<PaperDto> getReviewedPaper(Integer pageSize, Integer pageNum, Long verifierId);
+
+    /**
+     * 根据审核码和用户查询论文
+     * @return
+     */
+    Page<PaperDto> queryPaper(Integer pageSize, Integer pageNum, String auditCode, Long userId);
+
 
 }

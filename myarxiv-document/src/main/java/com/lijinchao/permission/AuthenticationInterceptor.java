@@ -35,7 +35,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     /**
      * 拦截器中无法注入bean，因此使用构造器
      */
-    private final RedisUtil<User> redisUtil;
+    private final RedisUtil redisUtil;
     private final AuthClient authClient;
 
     public AuthenticationInterceptor(RedisUtil redisUtil, AuthClient authClient) {
@@ -60,13 +60,27 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             returnJson(response,jsonObj);
             return false;
         }
-        User user = redisUtil.getByToken(token);
+
+        User user = (User)redisUtil.getByToken(token);
+//        User user = redisUtil.getByToken(token);
+//        User user = (User)redisUtil.getByTokenNew(token);
+
         if (ObjectUtils.isEmpty(user)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             String jsonObj = JSONObject.toJSONString(BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,"您的token已失效，请重新登录！！"));
             returnJson(response,jsonObj);
             return false;
         }
+
+//        // 发请求到project模块验证
+//        Boolean isAuth = authClient.authRequest(null, token);
+//
+//        if(!isAuth){
+//            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//            String jsonObj = JSONObject.toJSONString(BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,"验证不通过，请先登录账号"));
+//            returnJson(response,jsonObj);
+//            return false;
+//        }
 
         log.info("token验证通过！");
 

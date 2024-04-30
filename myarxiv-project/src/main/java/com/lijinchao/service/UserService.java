@@ -35,6 +35,13 @@ public interface UserService extends IService<User> {
     Boolean checkPermissionForUser(User user, List<String> permissions);
 
     /**
+     * 判断是否为管理员
+     * @param userId
+     * @return
+     */
+    public Boolean isAdmin(Long userId);
+
+    /**
      * 根据用户Id查询用户所有权限
      * @param userIds
      * @return

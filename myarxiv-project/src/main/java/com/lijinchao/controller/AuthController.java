@@ -3,6 +3,8 @@ package com.lijinchao.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lijinchao.constant.MessageConstant;
 import com.lijinchao.entity.User;
+import com.lijinchao.permission.Permission;
+import com.lijinchao.permission.PermissionRoleEnum;
 import com.lijinchao.service.AuthService;
 import com.lijinchao.service.LoginService;
 import com.lijinchao.utils.BaseApiResult;
@@ -121,8 +123,20 @@ public class AuthController {
         }
     }
 
-
-
-
+    /**
+     * 后台登录
+     * 只有管理员和审核角色可以登录
+     * @param user
+     * @return
+     */
+    @PostMapping("/backgroundLogin")
+    @ResponseBody
+    public BaseApiResult backgroundLogin(@RequestBody User user){
+        try {
+            return BaseApiResult.success(loginService.backgroundLogin(user));
+        }catch (Exception e){
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,e.getMessage());
+        }
+    }
 
 }

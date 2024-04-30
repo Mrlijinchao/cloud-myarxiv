@@ -14,10 +14,12 @@ import com.lijinchao.entity.dto.UserDTO;
 import com.lijinchao.enums.GlobalEnum;
 import com.lijinchao.permission.Permission;
 import com.lijinchao.permission.PermissionRoleEnum;
+import com.lijinchao.service.LoginService;
 import com.lijinchao.service.UserService;
 import com.lijinchao.utils.BaseApiResult;
 import com.lijinchao.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -45,6 +47,9 @@ public class UserController {
 
     @Resource
     RedisUtil redisUtil;
+
+    @Autowired
+    private LoginService loginService;
 
     /**
      * 获取当前用户信息
@@ -327,4 +332,7 @@ public class UserController {
             return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE, MessageConstant.OPERATE_FAILED);
         }
     }
+
+
+
 }

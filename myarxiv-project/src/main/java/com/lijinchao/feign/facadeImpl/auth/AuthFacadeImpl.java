@@ -41,4 +41,10 @@ public class AuthFacadeImpl implements AuthFacade {
 
         return userService.checkPermissionForUser(user, permissions);
     }
+
+    @Override
+    public User authGetUser(Long userId, String token) {
+        User user = queryRedisUserUtil.queryUser(userId, token);
+        return user;
+    }
 }

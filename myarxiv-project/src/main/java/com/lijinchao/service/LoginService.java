@@ -1,6 +1,7 @@
 package com.lijinchao.service;
 
 import com.lijinchao.entity.User;
+import com.lijinchao.utils.BaseApiResult;
 
 public interface LoginService {
     /**
@@ -18,5 +19,12 @@ public interface LoginService {
      * @return
      */
     Object emailLogin(String email,String code) throws Exception;
+
+    /**
+     * 后台登录
+     * @param user
+     * @return
+     */
+    Object backgroundLogin(User user) throws Exception;
 
 }

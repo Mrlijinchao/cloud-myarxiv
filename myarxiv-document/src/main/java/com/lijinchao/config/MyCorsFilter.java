@@ -15,6 +15,7 @@ public class MyCorsFilter {
         // 允许哪个请求来源进行跨域
         // corsConfiguration.addAllowedOrigin("*");
         corsConfiguration.addAllowedOriginPattern("*");
+        corsConfiguration.addAllowedOrigin("http://localhost:8848");
         // 是否允许携带cookie进行跨域
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setMaxAge(3600L);

@@ -1,5 +1,6 @@
 package com.lijinchao.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lijinchao.entity.File;
 import com.lijinchao.entity.Paper;
 import com.lijinchao.entity.Submission;
@@ -8,6 +9,7 @@ import com.lijinchao.entity.User;
 import com.lijinchao.entity.dto.SubmissionDto;
 
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -48,5 +50,27 @@ public interface SubmissionService extends IService<Submission> {
      * @return
      */
     List<Submission> getUnpublished(Boolean isSubmit,Long userId);
+
+    /**
+     * 查询已经提交还未审核的论文
+     * @param pageSize
+     * @param pageNum
+     * @param subjectId
+     * @return
+     */
+    Page<Submission> getSubmittedByPage(Integer pageSize,Integer pageNum,Long subjectId);
+
+    /**
+     * 根据Id删除submission
+     * @param submission
+     */
+    void deleteSubmission(Submission submission) throws IOException;
+
+    /**
+     * 撤销提交，撤回审核
+     * @param submission
+     */
+    void unSubmit(Submission submission);
+
 
 }

@@ -106,4 +106,13 @@ public class User extends BaseEntity {
      */
     private String description;
 
+    @TableField(exist = false)
+    private String isAdmin;
+
+    @TableField(exist = false)
+    private Subject subjectObj;
+
+    @TableField(exist = false)
+    private Category categoryObj;
+
 }

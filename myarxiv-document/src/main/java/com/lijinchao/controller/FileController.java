@@ -3,9 +3,11 @@ package com.lijinchao.controller;
 import com.lijinchao.constant.MessageConstant;
 import com.lijinchao.entity.File;
 import com.lijinchao.entity.User;
+import com.lijinchao.feign.feignclient.auth.AuthClient;
 import com.lijinchao.feign.feignclient.file.FileClient;
 import com.lijinchao.service.FileService;
 import com.lijinchao.uitls.FileUtils;
+import com.lijinchao.uitls.QueryRedisUserUtil;
 import com.lijinchao.uitls.RedisUtil;
 import com.lijinchao.utils.BaseApiResult;
 import org.springframework.http.HttpHeaders;
@@ -38,10 +40,13 @@ public class FileController {
     FileService fileService;
 
     @Resource
-    RedisUtil<User> redisUtil;
+    RedisUtil redisUtil;
 
     @Resource
     FileClient fileClient;
+
+    @Resource
+    AuthClient authClient;
 
     @PostMapping("")
     public BaseApiResult upload(@RequestParam("file") MultipartFile[] file,
@@ -49,8 +54,10 @@ public class FileController {
                                 @RequestParam(required = false) Long paperId,
                                 HttpServletRequest request){
         try {
+
             String token = request.getHeader("authorization");
-            User user = redisUtil.getByToken(token);
+            User user = (User) redisUtil.getByToken(token);
+//            User user = (User) authClient.authGetUser(null, token);
             return fileService.uploadFileBatch(file,submissionId,paperId,user);
         }catch (Exception e){
             e.printStackTrace();

@@ -24,4 +24,7 @@ public interface AuthFacade {
     Boolean authPermission(@RequestParam(required = false) Long userId, @RequestParam(required = false) String token,
                            @RequestParam(required = false) List<String> permissions);
 
+    @GetMapping("/getUser")
+    Object authGetUser(@RequestParam(required = false) Long userId, @RequestParam(required = false) String token);
+
 }

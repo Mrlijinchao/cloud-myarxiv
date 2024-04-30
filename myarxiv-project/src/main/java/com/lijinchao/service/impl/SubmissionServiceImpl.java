@@ -2,6 +2,7 @@ package com.lijinchao.service.impl;
 
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lijinchao.entity.File;
 import com.lijinchao.entity.Paper;
@@ -11,8 +12,10 @@ import com.lijinchao.entity.Submission;
 import com.lijinchao.entity.SubmissionFile;
 import com.lijinchao.entity.User;
 import com.lijinchao.entity.UserPaper;
+import com.lijinchao.entity.dto.PaperDto;
 import com.lijinchao.entity.dto.SubmissionDto;
 import com.lijinchao.enums.GlobalEnum;
+import com.lijinchao.feign.feignclient.FileClient;
 import com.lijinchao.mapper.PaperMapper;
 import com.lijinchao.service.FileService;
 import com.lijinchao.service.PaperCategoryService;
@@ -22,6 +25,7 @@ import com.lijinchao.service.SubmissionFileService;
 import com.lijinchao.service.SubmissionService;
 import com.lijinchao.mapper.SubmissionMapper;
 import com.lijinchao.service.UserPaperService;
+import com.lijinchao.utils.BeanUtilCopy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -29,14 +33,18 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -71,6 +79,12 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
 
     @Resource
     PaperFileService paperFileService;
+
+    @Resource
+    SubmissionMapper submissionMapper;
+
+    @Resource
+    FileClient fileClient;
 
     @Transactional
     @Override
@@ -176,12 +190,12 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
                 .eq(Paper::getSamePaperIdentifier, currentPaper.getSamePaperIdentifier())
                 .eq(Paper::getUsingVersion, 0));
         // 如果是第一版list就会为空
-        if(CollectionUtils.isEmpty(list)){
-            currentPaper.setVersion(1);
-        }else{
-            Paper paper = list.get(0);
-            currentPaper.setVersion(paper.getVersion() + 1);
-        }
+//        if(CollectionUtils.isEmpty(list)){
+        currentPaper.setVersion(1);
+//        }else{
+//            Paper paper = list.get(0);
+//            currentPaper.setVersion(paper.getVersion() + 1);
+//        }
 
         // 设置 subjectId、categoryId、licenseId
         currentPaper.setLicenseId(submission.getLicenseId());
@@ -196,7 +210,7 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
         currentPaper.setSubjectId(Long.parseLong(subject));
 
         // 设置审核状态 提交未审核
-        currentPaper.setAuditStatus(String.valueOf(1002));
+        currentPaper.setAuditStatus("1002");
 
         // 设置identifier
         Calendar calendar = Calendar.getInstance();
@@ -242,6 +256,7 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
             return submissionList;
         }
     }
+
 
     public void paperRelation(Long submissionId,String categoryValue,Long userId,Long paperId){
         // 保存用户和paper的关系
@@ -323,6 +338,102 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
 //        System.out.println(set1);
 //
 //    }
+
+    @Override
+    public Page<Submission> getSubmittedByPage(Integer pageSize, Integer pageNum, Long subjectId) {
+
+        Page<Paper> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<Paper> lambdaQueryWrapper = new LambdaQueryWrapper<Paper>()
+                .eq(Paper::getAuditStatus, "1002");
+        if(!ObjectUtils.isEmpty(subjectId)){
+            lambdaQueryWrapper.eq(Paper::getSubjectId,subjectId);
+        }
+
+        Page<Paper> paperPage = paperMapper.selectPage(page, lambdaQueryWrapper);
+
+        List<Paper> paperList = paperPage.getRecords();
+
+        if(CollectionUtils.isEmpty(paperList)){
+            return new Page<Submission>(pageNum,pageSize);
+        }
+
+        List<PaperDto> paperDtos = BeanUtilCopy.copyListProperties(paperList, PaperDto::new);
+
+        List<PaperDto> paperDtoList = paperService.wrapperPaper(paperDtos);
+
+        Map<Long, PaperDto> paperDtoMap = paperDtoList.stream().collect(Collectors.toMap(PaperDto::getId, Function.identity()));
+
+        List<Long> paperIds = paperList.stream().map(Paper::getId).collect(Collectors.toList());
+
+        List<Submission> submissionList = submissionService.list(new LambdaQueryWrapper<Submission>()
+                .in(Submission::getPaperId, paperIds));
+
+        Page<Submission> submissionPage = new Page<>(pageNum, pageSize);
+
+        submissionPage.setCountId(paperPage.getCountId());
+        submissionPage.setTotal(paperPage.getTotal());
+
+        for(Submission submission : submissionList){
+            PaperDto paperDto = paperDtoMap.get(submission.getPaperId());
+            if(!ObjectUtils.isEmpty(paperDto)){
+                submission.setPaperDto(paperDto);
+            }
+        }
+
+        submissionPage.setRecords(submissionList);
+
+        return submissionPage;
+
+    }
+
+    @Override
+    public void deleteSubmission(Submission submission) throws IOException {
+
+        if(ObjectUtils.isEmpty(submission) || ObjectUtils.isEmpty(submission.getId())){
+            return;
+        }
+        Submission storeSubmission = this.getById(submission);
+        this.removeById(submission.getId());
+
+        // 删除关联的论文
+        if(!ObjectUtils.isEmpty(storeSubmission.getPaperId())){
+            paperService.removeById(storeSubmission.getPaperId());
+        }
+
+        // 删除关联的文件
+        List<SubmissionFile> submissionFileList = submissionFileService.list(new LambdaQueryWrapper<SubmissionFile>()
+                .eq(SubmissionFile::getSubmissionId, storeSubmission.getId()));
+
+        if(CollectionUtils.isEmpty(submissionFileList)){
+            return;
+        }
+        List<Long> ids = submissionFileList.stream().map(SubmissionFile::getFileId).collect(Collectors.toList());
+        // 调用document模块删除文件
+        fileClient.removeFile(ids);
+
+    }
+
+    @Override
+    public void unSubmit(Submission submission) {
+        if(ObjectUtils.isEmpty(submission) || ObjectUtils.isEmpty(submission.getId())){
+            return;
+        }
+        // 回退提交步骤
+        Submission storeSubmission = this.getById(submission.getId());
+        storeSubmission.setCurrentStep(1);
+
+        // 改paper已提交为未提交
+        Paper paper = paperService.getById(storeSubmission.getPaperId());
+        if(ObjectUtils.isEmpty(paper)){
+            return;
+        }
+        paper.setAuditStatus(String.valueOf(1001));
+
+        paperService.updateById(paper);
+
+        this.updateById(storeSubmission);
+
+    }
 
 }
 

@@ -145,6 +145,12 @@
             <artifactId>commons-pool2</artifactId>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>com.baomidou</groupId>-->
+<!--            <artifactId>mybatis-plus-boot-starter</artifactId>-->
+<!--            <version>3.4.2</version>-->
+<!--        </dependency>-->
+
     </dependencies>
 
 <!--    如果要使用gitHub上面的开源项目的依赖的话，必须要使用这个仓库代理-->

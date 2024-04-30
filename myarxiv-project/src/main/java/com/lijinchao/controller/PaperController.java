@@ -97,6 +97,13 @@ public class PaperController {
             return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
         }
     }
+
+    /**
+     * 审核论文
+     * @param paperAudit
+     * @param request
+     * @return
+     */
     @Permission(roleValue = {PermissionRoleEnum.AUDIT})
     @PostMapping("/audit")
     public BaseApiResult paperAudit(@RequestBody PaperAudit paperAudit, HttpServletRequest request){
@@ -112,6 +119,16 @@ public class PaperController {
             return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
         }
     }
+
+//    @Permission(roleValue = {PermissionRoleEnum.AUDIT})
+//    @PostMapping("/onHold")
+//    public BaseApiResult paperOnHold(){
+//        try {
+//
+//        }catch (Exception e){
+//            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+//        }
+//    }
 
     @GetMapping("/getPaperByPage")
     public BaseApiResult queryPaperPageByCategory(@RequestParam Long categoryId,
@@ -223,5 +240,41 @@ public class PaperController {
             return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
         }
     }
+
+    /**
+     * 查询已经审核过的论文（用于后台管理）
+     * 可以根据审核者查询
+     * @param pageSize
+     * @param pageNum
+     * @param verifierId
+     * @return
+     */
+    @GetMapping("/queryPaperForBackground")
+    public BaseApiResult queryReviewedPaper(@RequestParam(defaultValue = "10") Integer pageSize,
+                                            @RequestParam(defaultValue = "1") Integer pageNum,
+                                            @RequestParam(required = false) Long verifierId){
+        try {
+            Page<PaperDto> reviewedPaper = paperService.getReviewedPaper(pageSize, pageNum, verifierId);
+            return BaseApiResult.success(reviewedPaper);
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+        }
+    }
+
+    @GetMapping("/queryPaper")
+    public BaseApiResult queryPaper(@RequestParam(defaultValue = "10") Integer pageSize,
+                                    @RequestParam(defaultValue = "1") Integer pageNum,
+                                    @RequestParam(required = false) String auditCode,
+                                    @RequestParam(required = false) Long userId){
+        try {
+            Page<PaperDto> paperDtoPage = paperService.queryPaper(pageSize, pageNum, auditCode, userId);
+            return BaseApiResult.success(paperDtoPage);
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+        }
+    }
+
 
 }

@@ -175,6 +175,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param userId
      * @return
      */
+    @Override
     public Boolean isAdmin(Long userId){
         if(userId == null){
             return false;

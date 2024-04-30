@@ -129,6 +129,7 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper>
         return paperDtoList.get(0);
     }
 
+    @Override
     public List<PaperDto> wrapperPaper(List<PaperDto> paperDtoList){
         if(CollectionUtils.isEmpty(paperDtoList)){
             return new ArrayList<>();
@@ -244,6 +245,7 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper>
         return paperDtoList;
 
     }
+
 
     @Override
     public Boolean paperAudit(PaperAudit paperAudit, User user) {
@@ -521,6 +523,85 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper>
             List<PaperDto> paperDtos = wrapperPaper(paperDtoList);
             paperDtoPage.setRecords(paperDtos);
             return paperDtoPage;
+    }
+
+    @Override
+    public Page<PaperDto> getReviewedPaper(Integer pageSize, Integer pageNum, Long verifierId) {
+
+        Page<Paper> page = new Page<>(pageNum, pageSize);
+
+        // 如果有带审核者id就查询其关联的论文，否则查询全部
+        if(!ObjectUtils.isEmpty(verifierId)){
+
+            List<PaperAudit> paperAuditList = paperAuditService.list(new LambdaQueryWrapper<PaperAudit>()
+                    .eq(PaperAudit::getUserId, verifierId));
+
+            if(CollectionUtils.isEmpty(paperAuditList)){
+                return new Page<PaperDto>(pageNum,pageSize);
+            }
+            List<Long> paperIds = paperAuditList.stream().map(PaperAudit::getPaperId).collect(Collectors.toList());
+
+            LambdaQueryWrapper<Paper> lambdaQueryWrapper = new LambdaQueryWrapper<Paper>()
+            .eq(Paper::getAuditStatus, "1003").in(Paper::getId,paperIds);
+
+            Page<Paper> paperPage = paperMapper.selectPage(page, lambdaQueryWrapper);
+            List<Paper> paperList = paperPage.getRecords();
+            List<PaperDto> paperDtos = BeanUtilCopy.copyListProperties(paperList, PaperDto::new);
+
+            List<PaperDto> paperDtoList = wrapperPaper(paperDtos);
+            Page<PaperDto> paperDtoPage = new Page<>();
+            BeanUtilCopy.copyProperties(paperPage,paperDtoPage);
+            paperDtoPage.setRecords(paperDtoList);
+            return paperDtoPage;
+        }else{
+            LambdaQueryWrapper<Paper> lambdaQueryWrapper = new LambdaQueryWrapper<Paper>()
+                    .eq(Paper::getAuditStatus, "1003");
+            Page<Paper> paperPage = paperMapper.selectPage(page, lambdaQueryWrapper);
+            List<Paper> paperList = paperPage.getRecords();
+            List<PaperDto> paperDtos = BeanUtilCopy.copyListProperties(paperList, PaperDto::new);
+            List<PaperDto> paperDtoList = wrapperPaper(paperDtos);
+
+            Page<PaperDto> paperDtoPage = new Page<>();
+            BeanUtilCopy.copyProperties(paperPage,paperDtoPage);
+            paperDtoPage.setRecords(paperDtoList);
+            return paperDtoPage;
+
+        }
+    }
+
+    @Override
+    public Page<PaperDto> queryPaper(Integer pageSize, Integer pageNum, String auditCode, Long userId) {
+        Page<Paper> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<Paper> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+
+        if(!ObjectUtils.isEmpty(userId)){
+            List<UserPaper> userPaperList = userPaperService.list(new LambdaQueryWrapper<UserPaper>()
+                    .eq(UserPaper::getUserId, userId));
+            if(!CollectionUtils.isEmpty(userPaperList)){
+                List<Long> ids = userPaperList.stream().map(UserPaper::getPaperId).collect(Collectors.toList());
+                lambdaQueryWrapper.in(Paper::getId,ids);
+            }
+        }
+
+        if(StringUtils.hasText(auditCode)){
+            lambdaQueryWrapper.eq(Paper::getAuditStatus,auditCode);
+        }
+
+        Page<Paper> paperPage = paperMapper.selectPage(page, lambdaQueryWrapper);
+
+        List<Paper> paperList = paperPage.getRecords();
+        if(CollectionUtils.isEmpty(paperList)){
+            return new Page<>(pageNum,pageSize);
+        }
+
+        List<PaperDto> paperDtos = BeanUtilCopy.copyListProperties(paperList, PaperDto::new);
+        List<PaperDto> paperDtos1 = wrapperPaper(paperDtos);
+
+        Page<PaperDto> paperDtoPage = new Page<>();
+        BeanUtilCopy.copyProperties(paperPage,paperDtoPage);
+        paperDtoPage.setRecords(paperDtos1);
+
+        return paperDtoPage;
     }
 
 }
