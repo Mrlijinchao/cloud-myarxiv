@@ -27,6 +27,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -233,6 +234,22 @@ public class SubmissionController {
             e.printStackTrace();
             return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
         }
+    }
+
+    @PutMapping("/updateFileInfo")
+    public BaseApiResult updateFileInfo(@RequestBody Map<String, String> fileInfo, HttpServletRequest request){
+        try {
+            String token = request.getHeader("authorization");
+            User user = (User)redisUtil.getByToken(token);
+            String md5Hash = fileInfo.get("md5Hash");
+            String cid = fileInfo.get("cid");
+            String transactionHash = fileInfo.get("transactionHash");
+            submissionService.updateFileInfo(md5Hash,cid,transactionHash,user.getId());
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+        }
+        return BaseApiResult.success();
     }
 
 }

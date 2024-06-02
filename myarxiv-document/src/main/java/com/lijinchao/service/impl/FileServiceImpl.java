@@ -88,7 +88,7 @@ public class FileServiceImpl implements FileService {
         LinkedHashMap hashMap = new LinkedHashMap<String,Object>();
         hashMap.put("fileName",originFileName);
         hashMap.put("cid",cid);
-        hashMap.put("md5",fileMd5);
+        hashMap.put("md5Hash",fileMd5);
         return BaseApiResult.success(hashMap);
     }
 

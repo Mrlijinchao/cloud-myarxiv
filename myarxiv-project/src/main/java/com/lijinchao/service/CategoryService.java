@@ -3,6 +3,7 @@ package com.lijinchao.service;
 import com.lijinchao.entity.Category;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lijinchao.entity.Subject;
+import com.lijinchao.utils.BaseApiResult;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public interface CategoryService extends IService<Category> {
      * @param category
      * @return
      */
-    void addCategory(Category category);
+    BaseApiResult addCategory(Category category);
 
     /**
      * 查询学科分类（分层）
@@ -32,5 +33,17 @@ public interface CategoryService extends IService<Category> {
      * @return
      */
     String getCategoryValue(Long categoryId);
+
+    /**
+     * 删除一个分类
+     * @param id
+     */
+    void deleteCategory(Long id);
+
+    /**
+     * 更新分类
+     * @param category
+     */
+    BaseApiResult updateCategory(Category category);
 
 }

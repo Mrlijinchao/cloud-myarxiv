@@ -1,12 +1,16 @@
 package com.lijinchao.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lijinchao.constant.MessageConstant;
 import com.lijinchao.entity.Subject;
 import com.lijinchao.service.SubjectService;
 import com.lijinchao.utils.BaseApiResult;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @RestController
 @RequestMapping("/subject")
@@ -37,6 +41,19 @@ public class SubjectController {
     @PostMapping("")
     public BaseApiResult addSubject(@RequestBody Subject subject){
         try {
+            if(ObjectUtils.isEmpty(subject)){
+                return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+            }
+            LambdaQueryWrapper<Subject> lambdaQueryWrapper = new LambdaQueryWrapper<Subject>()
+                    .eq(Subject::getCode, subject.getCode())
+                    .eq(Subject::getName, subject.getName());
+
+            List<Subject> list = subjectService.list(lambdaQueryWrapper);
+
+            if(!CollectionUtils.isEmpty(list)){
+                return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,"此学科已经存在");
+            }
+
             subjectService.addSubject(subject);
         }catch (Exception e){
             e.printStackTrace();

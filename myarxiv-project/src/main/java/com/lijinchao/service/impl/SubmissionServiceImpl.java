@@ -2,6 +2,7 @@ package com.lijinchao.service.impl;
 
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lijinchao.entity.File;
@@ -225,6 +226,10 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
         // 把paper和file、user、交叉category联系起来
         paperRelation(submissionDto.getSubmissionId(),submissionDto.getCategoryValue(),user.getId(),currentPaper.getId());
 
+//        List<SubmissionFile> submissionFileList = submissionFileService.list(new LambdaQueryWrapper<SubmissionFile>()
+//                .eq(SubmissionFile::getSubmissionId, submissionDto.getSubmissionId()));
+//
+
     }
 
     @Override
@@ -309,6 +314,7 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
             PaperFile paperFile = new PaperFile();
             paperFile.setFileId(id);
             paperFile.setPaperId(paperId);
+            paperFile.setStatusCd(GlobalEnum.EFFECT.getCode());
             paperFileArrayList.add(paperFile);
         }
         paperFileService.saveBatch(paperFileArrayList);
@@ -433,6 +439,20 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
 
         this.updateById(storeSubmission);
 
+    }
+
+    @Override
+    public void updateFileInfo(String md5Hash, String cid, String transactionHash, Long userId) {
+        if(!StringUtils.hasText(md5Hash) || !StringUtils.hasText(cid) ||
+                !StringUtils.hasText(transactionHash) || ObjectUtils.isEmpty(userId)){
+            return;
+        }
+        LambdaUpdateWrapper<File> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.eq(File::getMd5,md5Hash)
+                .eq(File::getCid,cid)
+                .eq(File::getUserId,userId)
+                .set(File::getHash,transactionHash);
+        fileService.update(lambdaUpdateWrapper);
     }
 
 }

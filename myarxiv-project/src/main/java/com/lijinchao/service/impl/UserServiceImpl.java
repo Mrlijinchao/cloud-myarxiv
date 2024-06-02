@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -251,7 +252,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Transactional
     @Override
-    public BaseApiResult delUsersById(@RequestBody List<Long> userIds) {
+    public BaseApiResult delUsersById(List<Long> userIds) {
+        if(CollectionUtils.isEmpty(userIds)){
+            return BaseApiResult.error(MessageConstant.PARAMS_ERROR_CODE,MessageConstant.DATA_IS_NULL);
+        }
+
         // 删除用户
         this.removeByIds(userIds);
 
@@ -414,6 +419,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public void addPrivilege(Long userId, Long privilegeId) {
+        if(ObjectUtils.isEmpty(userId) || ObjectUtils.isEmpty(privilegeId)){
+            return;
+        }
+        LambdaQueryWrapper<UserPrivilege> lambdaQueryWrapper = new LambdaQueryWrapper<UserPrivilege>()
+                .eq(UserPrivilege::getUserId, userId)
+                .eq(UserPrivilege::getPrivilegeId, privilegeId);
+
+        List<UserPrivilege> userPrivilegeList = userPrivilegeMapper.selectList(lambdaQueryWrapper);
+
+        if(!CollectionUtils.isEmpty(userPrivilegeList)){
+            return;
+        }
+
         UserPrivilege userPrivilege=new UserPrivilege();
         userPrivilege.setUserId(userId);
         userPrivilege.setPrivilegeId(privilegeId);
@@ -427,10 +445,44 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public void addRole(Long userId, Long roleId) {
+        if(ObjectUtils.isEmpty(userId) || ObjectUtils.isEmpty(roleId)){
+            return;
+        }
+        LambdaQueryWrapper<UserRole> lambdaQueryWrapper = new LambdaQueryWrapper<UserRole>()
+                .eq(UserRole::getUserId, userId)
+                .eq(UserRole::getRoleId, roleId);
+
+        List<UserRole> userRoleList = userRoleMapper.selectList(lambdaQueryWrapper);
+        if(!CollectionUtils.isEmpty(userRoleList)){
+            return;
+        }
+
         UserRole userRole=new UserRole();
         userRole.setUserId(userId);
         userRole.setRoleId(roleId);
         userRoleMapper.insert(userRole);
+    }
+
+    @Override
+    public void deletePrivilege(Long userId, Long privilegeId) {
+        if(ObjectUtils.isEmpty(userId) || ObjectUtils.isEmpty(privilegeId)){
+            return;
+        }
+        LambdaQueryWrapper<UserPrivilege> lambdaQueryWrapper = new LambdaQueryWrapper<UserPrivilege>()
+                .eq(UserPrivilege::getPrivilegeId, privilegeId)
+                .eq(UserPrivilege::getUserId, userId);
+        userPrivilegeMapper.delete(lambdaQueryWrapper);
+    }
+
+    @Override
+    public void deleteRole(Long userId, Long roleId) {
+        if(ObjectUtils.isEmpty(userId) || ObjectUtils.isEmpty(roleId)){
+            return;
+        }
+        LambdaQueryWrapper<UserRole> lambdaQueryWrapper = new LambdaQueryWrapper<UserRole>()
+                .eq(UserRole::getRoleId, roleId)
+                .eq(UserRole::getUserId, userId);
+        userRoleMapper.delete(lambdaQueryWrapper);
     }
 
     /**
@@ -450,6 +502,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         userDTO.setSubject(subject.getName());
         userDTO.setCategory(category.getName());
         return userDTO;
+    }
+
+    @Override
+    public List<User> getAllUser() {
+        List<User> userList = this.list();
+        List<Category> categoryList = categoryService.list();
+        List<Subject> subjectList = subjectService.list();
+        HashMap<Long, Category> categoryHashMap = new HashMap<>();
+        HashMap<Long, Subject> subjectHashMap = new HashMap<>();
+
+        if(!CollectionUtils.isEmpty(categoryList)){
+            Map<Long, Category> categoryMap = categoryList.stream()
+                    .collect(Collectors.toMap(Category::getId, Function.identity()));
+            categoryHashMap.putAll(categoryMap);
+        }
+
+        if(!CollectionUtils.isEmpty(subjectList)){
+            Map<Long, Subject> subjectMap = subjectList.stream()
+                    .collect(Collectors.toMap(Subject::getId, Function.identity()));
+            subjectHashMap.putAll(subjectMap);
+        }
+
+        for(User user : userList){
+            Category category = categoryHashMap.get(user.getCategoryId());
+            Subject subject = subjectHashMap.get(user.getSubjectId());
+            user.setCategoryObj(category);
+            user.setSubjectObj(subject);
+        }
+
+        return userList;
     }
 
 

@@ -107,10 +107,30 @@ public interface UserService extends IService<User> {
     void addRole(Long userId, Long roleId);
 
     /**
+     * 用户移除权限
+     * @param userId
+     * @param privilegeId
+     */
+    void deletePrivilege(Long userId, Long privilegeId);
+
+    /**
+     * 用户移除角色
+     * @param userId
+     * @param roleId
+     */
+    void deleteRole(Long userId, Long roleId);
+
+    /**
      * 获取补全的用户信息
      * @param user
      * @return
      */
     UserDTO getCompletionUser(User user);
+
+    /**
+     * 查询所有用户
+     * @return
+     */
+    List<User> getAllUser();
 
 }

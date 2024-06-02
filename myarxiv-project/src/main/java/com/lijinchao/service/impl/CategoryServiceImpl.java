@@ -6,6 +6,7 @@ import com.lijinchao.constant.MessageConstant;
 import com.lijinchao.entity.Category;
 import com.lijinchao.entity.Subject;
 import com.lijinchao.entity.SubjectCategory;
+import com.lijinchao.enums.GlobalEnum;
 import com.lijinchao.service.CategoryService;
 import com.lijinchao.mapper.CategoryMapper;
 import com.lijinchao.service.SubjectCategoryService;
@@ -42,12 +43,32 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category>
 
 
     @Override
-    public void addCategory(Category category) {
+    public BaseApiResult addCategory(Category category) {
         if(ObjectUtils.isEmpty(category)){
-            return ;
+            return BaseApiResult.error(MessageConstant.PARAMS_ERROR_CODE,MessageConstant.DATA_IS_NULL);
+        }
+        LambdaQueryWrapper<Category> lambdaQueryWrapper = new LambdaQueryWrapper<Category>()
+                .eq(Category::getCode, category.getCode())
+                .eq(Category::getName, category.getName());
+        List<Category> list = this.list(lambdaQueryWrapper);
+        if(!CollectionUtils.isEmpty(list)){
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,"此分类已经存在！");
+        }
+        // subject的id放在category的id里面传送到后端
+        Long subjectId = category.getId();
+        category.setId(null);
+        category.setStatusCd(GlobalEnum.EFFECT.getCode());
+        this.save(category);
+
+        if(!ObjectUtils.isEmpty(subjectId)){
+            SubjectCategory subjectCategory = new SubjectCategory();
+            subjectCategory.setCategoryId(category.getId());
+            subjectCategory.setSubjectId(subjectId);
+            subjectCategory.setStatusCd(GlobalEnum.EFFECT.getCode());
+            subjectCategoryService.save(subjectCategory);
         }
 
-        this.save(category);
+        return BaseApiResult.success(category);
     }
 
     @Override
@@ -127,6 +148,34 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category>
             }
         }
         return null;
+    }
+
+    @Override
+    public void deleteCategory(Long id) {
+        if(ObjectUtils.isEmpty(id)){
+            return;
+        }
+        this.removeById(id);
+        LambdaQueryWrapper<SubjectCategory> lambdaQueryWrapper = new LambdaQueryWrapper<SubjectCategory>()
+                .eq(SubjectCategory::getCategoryId, id);
+        subjectCategoryService.remove(lambdaQueryWrapper);
+    }
+
+    @Override
+    public BaseApiResult updateCategory(Category category) {
+        if(ObjectUtils.isEmpty(category)){
+            return BaseApiResult.error(MessageConstant.PARAMS_ERROR_CODE,MessageConstant.DATA_IS_NULL);
+        }
+        LambdaQueryWrapper<Category> lambdaQueryWrapper = new LambdaQueryWrapper<Category>()
+                .eq(Category::getCode, category.getCode())
+                .eq(Category::getName, category.getName());
+        List<Category> list = this.list(lambdaQueryWrapper);
+        if(!CollectionUtils.isEmpty(list) && list.size() > 1){
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,"此分类已经存在！");
+        }
+
+        this.updateById(category);
+        return BaseApiResult.success();
     }
 }
 

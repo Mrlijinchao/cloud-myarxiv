@@ -26,12 +26,11 @@ public class CategoryController {
     @PostMapping("")
     public BaseApiResult addCategory(@RequestBody Category category){
         try {
-            categoryService.addCategory(category);
+            return categoryService.addCategory(category);
         }catch (Exception e){
             e.printStackTrace();
             return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
         }
-        return BaseApiResult.success();
     }
 
     @GetMapping("/querySubjectCategory")
@@ -53,6 +52,37 @@ public class CategoryController {
                 return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
             }
             return BaseApiResult.success(categoryValue);
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+        }
+    }
+
+    @DeleteMapping("")
+    public BaseApiResult removeCategory(Long id){
+        try {
+            categoryService.deleteCategory(id);
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+        }
+        return BaseApiResult.success();
+    }
+
+    @GetMapping("")
+    public BaseApiResult queryCategoryList(){
+        try {
+            return BaseApiResult.success(categoryService.list());
+        }catch (Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+        }
+    }
+
+    @PutMapping("")
+    public BaseApiResult updateCategory(@RequestBody Category category){
+        try {
+            return categoryService.updateCategory(category);
         }catch (Exception e){
             e.printStackTrace();
             return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);

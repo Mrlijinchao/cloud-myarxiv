@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lijinchao.constant.MessageConstant;
 import com.lijinchao.entity.Category;
 import com.lijinchao.entity.File;
 import com.lijinchao.entity.License;
@@ -193,29 +194,29 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper>
         List<PaperCategory> paperCategoryList = paperCategoryService.list(new LambdaQueryWrapper<PaperCategory>()
                 .in(PaperCategory::getPaperId, paperIds));
 
-        if(CollectionUtils.isEmpty(paperCategoryList)){
-            return paperDtoList;
-        }
+        if(!CollectionUtils.isEmpty(paperCategoryList)){
+            List<Long> paperCategoryIds = paperCategoryList.stream().map(PaperCategory::getCategoryId)
+                    .collect(Collectors.toList());
+            List<Category> categories = categoryService.listByIds(paperCategoryIds);
+            Map<Long, Category> categoryMap = categories.stream().collect(Collectors.toMap(Category::getId, Function.identity()));
 
-        List<Long> paperCategoryIds = paperCategoryList.stream().map(PaperCategory::getCategoryId)
-                .collect(Collectors.toList());
-        List<Category> categories = categoryService.listByIds(paperCategoryIds);
-        Map<Long, Category> categoryMap = categories.stream().collect(Collectors.toMap(Category::getId, Function.identity()));
-
-        if(CollectionUtils.isEmpty(categories)){
-            return paperDtoList;
-        }
-
-        for(PaperDto paperDto : paperDtoList){
-
-            for(PaperCategory paperCategory : paperCategoryList){
-                if(paperDto.getId().equals(paperCategory.getPaperId())){
-                    Category category = categoryMap.get(paperCategory.getCategoryId());
-                    paperDto.getCrossCategoryList().add(category);
-                }
+            if(CollectionUtils.isEmpty(categories)){
+                return paperDtoList;
             }
 
+            for(PaperDto paperDto : paperDtoList){
+
+                for(PaperCategory paperCategory : paperCategoryList){
+                    if(paperDto.getId().equals(paperCategory.getPaperId())){
+                        Category category = categoryMap.get(paperCategory.getCategoryId());
+                        paperDto.getCrossCategoryList().add(category);
+                    }
+                }
+
+            }
         }
+
+
 
         // 封装文件信息
         List<PaperFile> paperFileList = paperFileService.list(new LambdaQueryWrapper<PaperFile>()
@@ -330,7 +331,7 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper>
         }
         // 这里 statusCd为1000表示正常，2000为更新版本时候用的
         List<PaperFile> paperFileList = paperFileService.list(new LambdaQueryWrapper<PaperFile>()
-                .eq(PaperFile::getPaperId, paperId).eq(PaperFile::getStatusCd,"1000"));
+                .eq(PaperFile::getPaperId, paperId).ne(PaperFile::getStatusCd,"2000"));
 
         if(CollectionUtils.isEmpty(paperFileList)){
             return new ArrayList<>();
@@ -375,6 +376,8 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper>
         // 把新版本paper和file、category、交叉category关联起来
         paperRelation(user.getId(),paper.getId(),lastPaper.getId());
 
+
+
         return true;
     }
 
@@ -417,9 +420,21 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper>
             PaperFile paperFile = new PaperFile();
             paperFile.setFileId(id);
             paperFile.setPaperId(paperId);
+            paperFile.setStatusCd(GlobalEnum.EFFECT.getCode());
             paperFileArrayList.add(paperFile);
         }
         paperFileService.saveBatch(paperFileArrayList);
+        ArrayList<Long> arrayList = new ArrayList<>();
+        // 删除上一个版本的statusCd为2000的文件
+        for(PaperFile paperFile:paperFileList){
+            if("2000".equals(paperFile.getStatusCd())){
+                arrayList.add(paperFile.getId());
+            }
+        }
+        if(!CollectionUtils.isEmpty(arrayList)){
+            paperFileService.removeByIds(arrayList);
+        }
+
 
     }
 

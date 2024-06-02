@@ -8,6 +8,7 @@ import com.lijinchao.constant.MessageConstant;
 import com.lijinchao.entity.Privilege;
 import com.lijinchao.entity.Role;
 import com.lijinchao.entity.User;
+import com.lijinchao.entity.UserPrivilege;
 import com.lijinchao.entity.UserRole;
 import com.lijinchao.entity.dto.RegisterDTO;
 import com.lijinchao.entity.dto.UserDTO;
@@ -120,7 +121,7 @@ public class UserController {
     @Transactional
     @Permission(roleValue = {PermissionRoleEnum.ADMIN, PermissionRoleEnum.SUPERADMIN})
     @DeleteMapping("")
-    public BaseApiResult delUser(@RequestBody List<Long> userIds) {
+    public BaseApiResult delUser(@RequestParam List<Long> userIds) {
         try {
             return userService.delUsersById(userIds);
         } catch (Exception e) {
@@ -141,20 +142,40 @@ public class UserController {
         return userService.closeAccount(token);
     }
 
+    @Permission(roleValue = {PermissionRoleEnum.ADMIN, PermissionRoleEnum.SUPERADMIN})
+    @PostMapping("/frozenAccount")
+    public BaseApiResult frozenAccount(@RequestBody User user){
+        try {
+            // statusCd为1000表示正常，为1100表示账号冻结
+            boolean update = userService.update(new LambdaUpdateWrapper<User>()
+                    .eq(User::getId, user.getId())
+                    .set(User::getStatusCd, "1100"));
+            if(update){
+                return BaseApiResult.success();
+            }else{
+                return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE, MessageConstant.OPERATE_FAILED);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE, MessageConstant.OPERATE_FAILED);
+        }
+    }
+
     /**
      * 恢复用户账号
      *
-     * @param userId
+     * @param user
      * @return
      */
     @Transactional
     @Permission(roleValue = {PermissionRoleEnum.ADMIN, PermissionRoleEnum.SUPERADMIN})
     @PostMapping("/recoverAccount")
-    public BaseApiResult recoverAccount(Long userId) {
-        if (ObjectUtils.isEmpty(userId)) {
+    public BaseApiResult recoverAccount(@RequestBody User user) {
+        if (ObjectUtils.isEmpty(user.getId())) {
             return BaseApiResult.error(MessageConstant.PARAMS_ERROR_CODE, MessageConstant.DATA_IS_NULL);
         }
         boolean b = userService.update(new LambdaUpdateWrapper<User>()
+                        .eq(User::getId,user.getId())
                 .set(User::getStatusCd, GlobalEnum.EFFECT.getCode()));
         if (b) {
             return BaseApiResult.success("用户账号已恢复");
@@ -301,14 +322,13 @@ public class UserController {
 
     /**
      * 用户添加权限
-     * @param userId
-     * @param privilegeId
+     * @param userPrivilege
      * @return
      */
     @PostMapping("/addPrivilege")
-    public BaseApiResult addPrivilege(Long userId,Long privilegeId){
+    public BaseApiResult addPrivilege(@RequestBody UserPrivilege userPrivilege){
         try{
-            userService.addPrivilege(userId,privilegeId);
+            userService.addPrivilege(userPrivilege.getUserId(),userPrivilege.getPrivilegeId());
             return BaseApiResult.success("添加成功！");
         }catch(Exception e){
             e.printStackTrace();
@@ -318,15 +338,59 @@ public class UserController {
 
     /**
      * 用户添加角色
+     * @param userRole
+     * @return
+     */
+    @PostMapping("/addRole")
+    public BaseApiResult addRole(@RequestBody UserRole userRole){
+        try{
+            userService.addRole(userRole.getUserId(),userRole.getRoleId());
+            return BaseApiResult.success("添加成功！");
+        }catch(Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE, MessageConstant.OPERATE_FAILED);
+        }
+    }
+
+    /**
+     * 用户移除限
+     * @param userId
+     * @param privilegeId
+     * @return
+     */
+    @DeleteMapping("/removePrivilege")
+    public BaseApiResult removePrivilege(Long userId,Long privilegeId){
+        try{
+            userService.deletePrivilege(userId,privilegeId);
+            return BaseApiResult.success("移除成功！");
+        }catch(Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE, MessageConstant.OPERATE_FAILED);
+        }
+    }
+
+    /**
+     * 用户移除角色
      * @param userId
      * @param roleId
      * @return
      */
-    @PostMapping("/addRole")
-    public BaseApiResult addRole(Long userId,Long roleId){
+    @DeleteMapping("/removeRole")
+    public BaseApiResult removeRole(Long userId,Long roleId){
         try{
-            userService.addRole(userId,roleId);
-            return BaseApiResult.success("添加成功！");
+            userService.deleteRole(userId,roleId);
+            return BaseApiResult.success("移除成功！");
+        }catch(Exception e){
+            e.printStackTrace();
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE, MessageConstant.OPERATE_FAILED);
+        }
+    }
+
+    @GetMapping("/queryAllUser")
+    public BaseApiResult queryAllUser(){
+        try {
+            List<User> allUser = userService.getAllUser();
+            return BaseApiResult.success(allUser);
         }catch(Exception e){
             e.printStackTrace();
             return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE, MessageConstant.OPERATE_FAILED);

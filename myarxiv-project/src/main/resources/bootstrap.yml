@@ -8,12 +8,14 @@ spring:
       username: ${NACOS_USERNAME:nacos}
       password: ${NACOS_PASSWORD:nacos}
       discovery:
-        server-addr: ${NACOS_ADDR:192.168.153.145:8850}
+#        server-addr: ${NACOS_ADDR:192.168.153.145:8850}
+        server-addr: ${NACOS_ADDR:43.139.8.186:8850}
         namespace: ${NAMESPACE_ID:0a523cd0-799b-4032-95d7-ac5baaca0185}
       config:
         enabled: true
         bootstrap: true
-        server-addr: ${NACOS_ADDR:192.168.153.145:8850}
+#        server-addr: ${NACOS_ADDR:192.168.153.145:8850}
+        server-addr: ${NACOS_ADDR:43.139.8.186:8850}
         namespace: ${NAMESPACE_ID:0a523cd0-799b-4032-95d7-ac5baaca0185}
         group: ${NACOS_GROUP:PROJECT_GROUP}
         file-extension: ${NACOS_EX:yaml}

@@ -118,5 +118,15 @@ public class PrivilegeController {
 
     }
 
+    @GetMapping("/queryAllPrivilege")
+    public BaseApiResult queryAllPrivilege(){
+        try {
+            return BaseApiResult.success(privilegeService.list());
+        }catch (Exception e) {
+            log.error(e.getMessage());
+            return BaseApiResult.error(MessageConstant.PROCESS_ERROR_CODE,MessageConstant.OPERATE_FAILED);
+        }
+    }
+
 
 }

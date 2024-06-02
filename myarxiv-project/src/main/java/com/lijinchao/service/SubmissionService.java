@@ -72,5 +72,13 @@ public interface SubmissionService extends IService<Submission> {
      */
     void unSubmit(Submission submission);
 
+    /**
+     * 更新文件上链信息
+     * @param md5Hash
+     * @param cid
+     * @param transactionHash
+     * @param userId
+     */
+    void updateFileInfo(String md5Hash,String cid,String transactionHash,Long userId);
 
 }
